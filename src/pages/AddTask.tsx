@@ -1,19 +1,18 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { Task } from "../types/task";
+import { useDispatch} from "react-redux";
+import type { AppDispatch } from "../redux/store";
+import { addTask } from "../redux/taskSlice";
 import { addNewTask } from "../services/taskService";
 import { useNavigate } from "react-router";
 import { taskValidationSchema } from "../validation/taskValidation";
 import { useState } from "react";
 
-type AddTaskProps = {
-  onTaskAdded: (task: Task) => void;
-};
 
-export default function AddTask({onTaskAdded,}: AddTaskProps) {
 
+export default function AddTask() {
+  const dispatch=useDispatch<AppDispatch>();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
   return (
     <div className="user-form-page">
 
@@ -41,13 +40,9 @@ export default function AddTask({onTaskAdded,}: AddTaskProps) {
 
           try {
             setLoading(true);
-
             const res = await addNewTask(newTask);
-
-            onTaskAdded(res);
-
+            dispatch(addTask(res));
             navigate("/tasks");
-
           } catch (err) {
             console.log(err);
           } finally {

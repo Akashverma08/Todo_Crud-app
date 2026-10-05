@@ -1,28 +1,24 @@
 import { useParams, useNavigate } from "react-router";
 import type { Task } from "../types/task";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../redux/store";
+import { updateTask } from "../redux/taskSlice";
 import { updatedTaskApi } from "../services/taskService";
-
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { taskValidationSchema } from "../validation/taskValidation";
 
-export type TaskEditProps = {
-    tasks: Task[];
-    taskEdited: (task: Task) => void;
-};
-
-export default function EditTask({tasks,taskEdited,}: TaskEditProps) {
+export default function EditTask() {
 
     const { id } = useParams();
     const navigate = useNavigate();
-
+    const dispatch=useDispatch<AppDispatch>()
+    const tasks=useSelector((state:RootState)=> state.tasks.tasks)
     const singleTask = tasks.find((task) => task.id === id);
 
     return (
         <div className="user-form-page">
-
             <h1>Edit Task</h1>
             <hr />
-
             <Formik
                 initialValues={{
                     title: singleTask?.title || "",
@@ -35,7 +31,7 @@ export default function EditTask({tasks,taskEdited,}: TaskEditProps) {
 
                 onSubmit={async (values, { setStatus }) => {
 
-                    const updateTask = {
+                    const updateTaskData = {
                         title: values.title,
                         description: values.description,
                         status: values.status,
@@ -43,11 +39,7 @@ export default function EditTask({tasks,taskEdited,}: TaskEditProps) {
                     };
 
                     try {
-
-                        const result = await updatedTaskApi(
-                            String(id),
-                            updateTask
-                        );
+                        const result = await updatedTaskApi(String(id),updateTaskData);
 
                         console.log("PATCH RESULT:", result);
 
@@ -59,17 +51,12 @@ export default function EditTask({tasks,taskEdited,}: TaskEditProps) {
                             priority: result.priority,
                         };
 
-                        taskEdited(updatedTask);
-
+                        dispatch(updateTask(updatedTask));
                         navigate("/tasks");
 
                     } catch (err) {
-
                         console.log(err);
-
-                        setStatus(
-                            "Something went wrong, unable to edit."
-                        );
+                        setStatus("Something went wrong, unable to edit.");
                     }
                 }}
             >
